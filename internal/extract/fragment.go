@@ -25,7 +25,7 @@ func buildFragment(raw rawFragment) (model.Fragment, error) {
 
 	doc, ok := parsed.(map[string]any)
 	if !ok {
-		return model.Fragment{}, fmt.Errorf("%s:%d:%d: @openapi врагемент не map",
+		return model.Fragment{}, fmt.Errorf("%s:%d:%d: @openapi фрагемент не map",
 			raw.origin.File, raw.origin.Line, raw.origin.Column)
 	}
 
