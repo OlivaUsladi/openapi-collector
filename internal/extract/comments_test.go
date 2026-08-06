@@ -273,3 +273,48 @@ func F() {}
 		t.Errorf("ожидалась позиция 2:1, получено %d:%d", frags[0].Origin.Line, frags[0].Origin.Column)
 	}
 }
+
+func TestFindMarkedComments12(t *testing.T) {
+	src := "package p\n\n// @openapi\n//\tpaths: {}\nfunc F() {}\n"
+	_, err := FindApiComment("test.go", "test.go", []byte(src))
+	if err == nil {
+		t.Fatal("ожидалась ошибка табуляции")
+	}
+	if !strings.Contains(err.Error(), "ошибка табуляции") {
+		t.Fatalf("ожидалась ошибка с текстом 'ошибка табуляции', получено: %v", err)
+	}
+}
+
+func TestFindMarkedComments13(t *testing.T) {
+	src := "package p\r\n\r\n// @openapi\r\n// paths:\r\n//   /x:\r\n//     get:\r\n//       operationId: x\r\nfunc F() {}\r\n"
+	frags, err := FindApiComment("test.go", "test.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(frags) != 1 {
+		t.Fatalf("CRLF: ожидался 1 фрагмент, получено %d", len(frags))
+	}
+}
+
+func TestFindMarkedComments14(t *testing.T) {
+	src := "\xEF\xBB\xBFpackage p\n\n// @openapi\n// paths:\n//   /x:\n//     get:\n//       operationId: x\nfunc F() {}\n"
+	frags, err := FindApiComment("test.go", "test.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(frags) != 1 {
+		t.Fatalf("BOM: ожидался 1 фрагмент, получено %d", len(frags))
+	}
+}
+
+func TestFindMarkedComments15(t *testing.T) {
+	src := `package p
+// @openapi
+// просто комментарий
+func F() {}
+`
+	_, err := FindApiComment("test.go", "test.go", []byte(src))
+	if err == nil {
+		t.Fatal("ожидалась ошибка пустого YAML-фрагмента")
+	}
+}
