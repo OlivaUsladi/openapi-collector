@@ -3,6 +3,8 @@ package app
 import (
 	"flag"
 	"fmt"
+	"io"
+	"openapi-collector/internal/extract"
 	"strings"
 )
 
@@ -17,7 +19,7 @@ func (s *stringList) Set(value string) error {
 	return nil
 }
 
-func Run(args []string) error {
+func Run(args []string, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
 		return fmt.Errorf("нужно указать команду: oapic list, generate, validate")
 	}
@@ -28,39 +30,44 @@ func Run(args []string) error {
 	//}
 	switch cmd {
 	case "list":
-		return runList(rest)
+		return runList(rest, stdout, stderr)
 	default:
 		return fmt.Errorf("неизвестная команда: %s", cmd)
 	}
 	return nil
 }
 
-func runList(args []string) error {
+func runList(args []string, stdout, stderr io.Writer) error {
 	lst := flag.NewFlagSet("list", flag.ContinueOnError)
+	lst.SetOutput(stderr)
 	includeTests := lst.Bool("include-tests", false, "анализировать файлы _test.go")
 	var excludes stringList
 	lst.Var(&excludes, "exclude", "glob-маска исключаемых путей")
 	source := lst.String("source", "", "файл или каталог с Go-кодом")
-	format := lst.String("format", "yaml", "yaml или json")
-
-	//info, err := os.Stat(*source)
-	//if err != nil {
-	//	return err
-	//}
-	//isDir := info.IsDir()
-
-	//files, err := extract.GoFiles(*source, *includeTests, excludes)
-	//if err != nil {
-	//	return err
-	//}
 
 	err := lst.Parse(args)
 	if err != nil {
 		return err
 	}
 	if *source == "" {
-		return fmt.Errorf("--base и --source не могут быть пустыми")
+		return fmt.Errorf("--source не может быть пустым")
 	}
-	fmt.Println(*source, *includeTests, *format)
+
+	fr, errs := extract.JoinOpenApi(*source, *includeTests, excludes)
+
+	for _, frag := range fr {
+		fmt.Fprintf(stdout, "%s:%d:%d  [%s]\n",
+			frag.Origin.File, frag.Origin.Line, frag.Origin.Column,
+			strings.Join(frag.Sections, ", "))
+	}
+	fmt.Fprintf(stdout, "Всего фрагментов: %d\n", len(fr))
+
+	if len(errs) > 0 {
+		for _, e := range errs {
+			fmt.Fprintln(stderr, e)
+		}
+		return fmt.Errorf("%d ошибки во время выполнения", len(errs))
+	}
+
 	return nil
 }
