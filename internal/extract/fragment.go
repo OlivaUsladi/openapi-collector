@@ -39,5 +39,6 @@ func buildFragment(raw rawFragment) (model.Fragment, error) {
 		Origin:   raw.origin,
 		Sections: sections,
 		Raw:      text,
+		Doc:      doc,
 	}, nil
 }

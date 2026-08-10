@@ -26,7 +26,7 @@ func FindApiComment(filename, path string, src []byte) ([]model.Fragment, error)
 	var fragments []model.Fragment
 	for _, group := range file.Comments {
 		pos := fset.Position(group.Pos())
-		origin := model.Origin{filename, pos.Line, pos.Column}
+		origin := model.Origin{File: filename, Line: pos.Line, Column: pos.Column}
 
 		raw, found, err := rawFragmentBuild(group, origin)
 		if err != nil {

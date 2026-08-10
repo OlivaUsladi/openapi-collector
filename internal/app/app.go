@@ -34,7 +34,6 @@ func Run(args []string, stdout, stderr io.Writer) error {
 	default:
 		return fmt.Errorf("неизвестная команда: %s", cmd)
 	}
-	return nil
 }
 
 func runList(args []string, stdout, stderr io.Writer) error {
