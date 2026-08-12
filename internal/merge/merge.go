@@ -90,9 +90,9 @@ func (m *merger) registerBase(origin model.Origin) {
 				continue
 			}
 			for field := range pathItem {
-				// здесь будет проверка isHTTPMethod(field) различаются ли HTTP методы и path поля
-				_ = field
-				m.res.Owners[operationKey(field, path)] = origin
+				if isHTTPMethod(field) {
+					m.res.Owners[operationKey(field, path)] = origin
+				}
 			}
 		}
 	}
@@ -146,9 +146,9 @@ func (m *merger) mergeFragment(frag model.Fragment) {
 		return
 	}
 
-	_, has := frag.Doc["paths"]
+	paths, has := frag.Doc["paths"]
 	if has {
-		// здесь будет m.mergePaths(paths, frag.Origin)
+		m.mergePaths(paths, frag.Origin)
 	}
 	_, has = frag.Doc["components"]
 	if has {
