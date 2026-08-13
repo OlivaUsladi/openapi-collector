@@ -150,13 +150,13 @@ func (m *merger) mergeFragment(frag model.Fragment) {
 	if has {
 		m.mergePaths(paths, frag.Origin)
 	}
-	_, has = frag.Doc["components"]
+	components, has := frag.Doc["components"]
 	if has {
-		// здесь будет m.mergeComponents(components, frag.Origin)
+		m.mergeComponents(components, frag.Origin)
 	}
-	_, has = frag.Doc["tags"]
+	tags, has := frag.Doc["tags"]
 	if has {
-		// здесь будет m.mergeTags(tags, frag.Origin)
+		m.mergeTags(tags, frag.Origin)
 	}
 	// здесь будет перенос расширений x-* верхнего уровня фрагмента в итоговый документ
 }
