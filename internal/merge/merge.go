@@ -158,7 +158,26 @@ func (m *merger) mergeFragment(frag model.Fragment) {
 	if has {
 		m.mergeTags(tags, frag.Origin)
 	}
-	// здесь будет перенос расширений x-* верхнего уровня фрагмента в итоговый документ
+
+	for key, value := range frag.Doc {
+		if strings.HasPrefix(key, "x-") {
+			m.mergeExtension(key, value, frag.Origin)
+		}
+	}
+}
+
+// переносит расширение x-* верхнего уровня фрагмента в итоговый документ
+func (m *merger) mergeExtension(key string, value any, origin model.Origin) {
+	ownerKey := "ext:" + key
+	first, exists := m.res.Owners[ownerKey]
+	if exists {
+		if !deepEqual(m.res.Doc[key], value) {
+			m.conflict("top-level extension", key, first, origin)
+		}
+		return
+	}
+	m.res.Doc[key] = value
+	m.res.Owners[ownerKey] = origin
 }
 
 // запрещено ли поле верхнего уровня во фрагменте
