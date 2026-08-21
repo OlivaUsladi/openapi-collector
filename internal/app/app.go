@@ -33,6 +33,8 @@ func Run(args []string, stdout, stderr io.Writer) error {
 		return runList(rest, stdout, stderr)
 	case "validate":
 		return runValidate(rest, stdout, stderr)
+	case "generate":
+		return runGenerate(rest, stdout, stderr)
 	default:
 		return fmt.Errorf("неизвестная команда: %s", cmd)
 	}
